@@ -1,0 +1,62 @@
+{
+  "name": "firecast",
+  "version": "0.1.0",
+  "description": "Thin typed wrapper over both Firestore SDKs",
+  "license": "MIT",
+  "author": "mwpryer",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/mwpryer/firecast.git"
+  },
+  "files": [
+    "dist"
+  ],
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./admin": {
+      "types": "./dist/admin.d.ts",
+      "import": "./dist/admin.js"
+    },
+    "./web": {
+      "types": "./dist/web.d.ts",
+      "import": "./dist/web.js"
+    }
+  },
+  "scripts": {
+    "build": "tsup",
+    "typecheck": "tsc --noEmit",
+    "test": "bun test",
+    "lint": "oxlint",
+    "lint:fix": "oxlint --fix",
+    "fmt": "oxfmt",
+    "fmt:check": "oxfmt --check",
+    "format": "bun run lint:fix && bun run fmt"
+  },
+  "dependencies": {
+    "@standard-schema/spec": "^1.1.0"
+  },
+  "devDependencies": {
+    "@types/bun": "latest",
+    "firebase": "^12.15.0",
+    "firebase-admin": "^14.0.0",
+    "oxfmt": "^0.56.0",
+    "oxlint": "^1.71.0",
+    "tsup": "^8.5.1"
+  },
+  "peerDependencies": {
+    "firebase": "^11.0.0 || ^12.0.0",
+    "firebase-admin": "^12.0.0 || ^13.0.0 || ^14.0.0"
+  },
+  "peerDependenciesMeta": {
+    "firebase": {
+      "optional": true
+    },
+    "firebase-admin": {
+      "optional": true
+    }
+  }
+}
