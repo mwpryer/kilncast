@@ -1,12 +1,12 @@
 {
-  "name": "firecast",
+  "name": "kilncast",
   "version": "0.1.0",
   "description": "Thin typed wrapper over both Firestore SDKs",
   "license": "MIT",
   "author": "mwpryer",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/mwpryer/firecast.git"
+    "url": "git+https://github.com/mwpryer/kilncast.git"
   },
   "files": [
     "dist"
@@ -29,7 +29,7 @@
   "scripts": {
     "build": "tsup",
     "typecheck": "tsc --noEmit",
-    "test": "firebase emulators:exec --only firestore --project firecast 'bun test'",
+    "test": "firebase emulators:exec --only firestore --project kilncast 'bun test'",
     "lint": "oxlint",
     "lint:fix": "oxlint --fix",
     "fmt": "oxfmt",

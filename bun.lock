@@ -3,7 +3,7 @@
   "configVersion": 1,
   "workspaces": {
     "": {
-      "name": "firecast",
+      "name": "kilncast",
       "dependencies": {
         "@standard-schema/spec": "^1.1.0",
       },

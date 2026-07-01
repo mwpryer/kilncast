@@ -1,20 +1,20 @@
 <p align="center">
-  <img src="assets/firecast.png" alt="firecast" width="192">
+  <img src="assets/kilncast.png" alt="kilncast" width="192">
 </p>
 
-<h1 align="center">firecast</h1>
+<h1 align="center">kilncast</h1>
 
 <p align="center">Both Firestore SDKs behind one thin, schema-typed TypeScript interface.</p>
 
 <p align="center">
-  <a href="https://www.npmjs.com/package/firecast"><img src="https://img.shields.io/npm/v/firecast" alt="npm version"></a>
-  <a href="https://github.com/mwpryer/firecast/stargazers"><img src="https://img.shields.io/github/stars/mwpryer/firecast" alt="GitHub stars"></a>
+  <a href="https://www.npmjs.com/package/kilncast"><img src="https://img.shields.io/npm/v/kilncast" alt="npm version"></a>
+  <a href="https://github.com/mwpryer/kilncast/stargazers"><img src="https://img.shields.io/github/stars/mwpryer/kilncast" alt="GitHub stars"></a>
 </p>
 
 > [!IMPORTANT]
 > This project is under active development. Expect breaking changes before v1.0.
 
-firecast is a thin wrapper over Firestore's SDKs, giving both one schema-typed interface: `firebase-admin` on the server and `firebase` on the web. Define a collection's schema once, in a validator you already use. Reads come back coerced and typed, and queries are typed to its fields. Underneath it's still plain Firestore, so you can reach for the SDK whenever you like.
+kilncast is a thin wrapper over Firestore's SDKs, giving both one schema-typed interface: `firebase-admin` on the server and `firebase` on the web. Define a collection's schema once, in a validator you already use. Reads come back coerced and typed, and queries are typed to its fields. Underneath it's still plain Firestore, so you can reach for the SDK whenever you like.
 
 ## Why
 
@@ -35,7 +35,7 @@ await setDoc(doc(db, "posts", "hello-world"), {
   likes: "10", // wrong type, stored anyway
 });
 
-// firecast
+// kilncast
 const post = await db.collection(posts).get("hello-world");
 // { id: string; title: string; likes: number; createdAt: Date } | null
 await db.collection(posts).set("hello-world", {
@@ -45,20 +45,20 @@ await db.collection(posts).set("hello-world", {
 });
 ```
 
-firecast moves all of this onto the collection definition, built from a schema you already have.
+kilncast moves all of this onto the collection definition, built from a schema you already have.
 
-The schema is a [Standard Schema](https://standardschema.dev) validator, so Zod, Valibot, ArkType or any other compliant library supplies the types. firecast depends only on the spec's type definitions and never runs your schema; there is no runtime validation unless you want some, and then you run the same schema yourself.
+The schema is a [Standard Schema](https://standardschema.dev) validator, so Zod, Valibot, ArkType or any other compliant library supplies the types. kilncast depends only on the spec's type definitions and never runs your schema; there is no runtime validation unless you want some, and then you run the same schema yourself.
 
 Timestamps round-trip. Write a `Date`, read a `Date`, however deeply it sits in maps and arrays. And one definition covers both SDKs: the same typed surface works with `firebase-admin` on the server and `firebase` on the web, so the model code you used to duplicate lives in one module, and that module imports no Firebase.
 
 The whole surface is typed against the schema: reads and writes, the query builder and its aggregations, listeners, transactions, subcollections and collection-group queries. A misspelt field is a compile error rather than an empty result.
 
-Underneath, it is still plain Firestore. firecast is a thin wrapper, not an ORM, and every handle exposes `.ref`, so you can always drop to the raw SDK.
+Underneath, it is still plain Firestore. kilncast is a thin wrapper, not an ORM, and every handle exposes `.ref`, so you can always drop to the raw SDK.
 
 ## Install
 
 ```sh
-npm install firecast
+npm install kilncast
 # plus whichever SDK you use
 npm install firebase-admin   # server
 npm install firebase         # web
@@ -69,7 +69,7 @@ npm install firebase         # web
 Define a collection, connect a database, then read and write typed documents.
 
 ```ts
-import { collection } from "firecast";
+import { collection } from "kilncast";
 import { z } from "zod";
 
 const posts = collection(
@@ -81,7 +81,7 @@ const posts = collection(
   }),
 );
 
-import { createDatabase } from "firecast/admin";
+import { createDatabase } from "kilncast/admin";
 import { getFirestore } from "firebase-admin/firestore";
 
 const db = createDatabase(getFirestore());
@@ -98,12 +98,12 @@ const post = await db.collection(posts).get("hello-world");
 
 ## Define a schema
 
-A collection definition is a plain value (`name` + `schema`) with no database binding, so it's reusable at any path, including subcollections. The schema module imports only `firecast`, so Firebase never reaches a frontend bundle.
+A collection definition is a plain value (`name` + `schema`) with no database binding, so it's reusable at any path, including subcollections. The schema module imports only `kilncast`, so Firebase never reaches a frontend bundle.
 
-The schema should describe a document Firestore can store: an object of fields, with no directly nested arrays (an array of arrays). firecast does not police this, so a non-storable shape surfaces as an SDK error at write time rather than a firecast one.
+The schema should describe a document Firestore can store: an object of fields, with no directly nested arrays (an array of arrays). kilncast does not police this, so a non-storable shape surfaces as an SDK error at write time rather than a kilncast one.
 
 ```ts
-import { collection } from "firecast";
+import { collection } from "kilncast";
 import { z } from "zod";
 
 export const posts = collection(
@@ -123,7 +123,7 @@ Pass a Firestore instance to `createDatabase`. The server entrypoint uses `fireb
 
 ```ts
 // server.ts
-import { createDatabase } from "firecast/admin";
+import { createDatabase } from "kilncast/admin";
 import { getFirestore } from "firebase-admin/firestore";
 
 const db = createDatabase(getFirestore());
@@ -132,7 +132,7 @@ const db = createDatabase(getFirestore());
 The web entrypoint is the same, but uses the modular `firebase` SDK.
 
 ```ts
-import { createDatabase } from "firecast/web";
+import { createDatabase } from "kilncast/web";
 import { getFirestore } from "firebase/firestore";
 
 const db = createDatabase(getFirestore(app));
@@ -183,7 +183,7 @@ await db.collection(posts).delete("hello-world");
 
 Every write also works on a document handle, like `db.collection(posts).doc("hello-world").set(...) / .update(...) / .delete()`.
 
-`increment`, `serverTimestamp`, `arrayUnion`, `arrayRemove` and `deleteField` import from `firecast`, see [Sentinels](#sentinels).
+`increment`, `serverTimestamp`, `arrayUnion`, `arrayRemove` and `deleteField` import from `kilncast`, see [Sentinels](#sentinels).
 
 ## Query
 
@@ -215,10 +215,10 @@ const meanLikes = await db.collection(posts).average("likes");
 
 Dotted paths reach into nested maps, typed end to end. `where("customer.address.city", "==", "London")` requires that path to exist and its value to be a string. Paths stop at arrays and timestamps (those are queried as whole values), so `where("tags", "array-contains", "vip")` is valid but `where("tags.0", ...)` is not.
 
-The document id is not a schema field, so target it with `documentId()` (imported from `firecast`). Use it to filter by id, or as an ordering tiebreak. Id values are plain strings, not the schema's field types.
+The document id is not a schema field, so target it with `documentId()` (imported from `kilncast`). Use it to filter by id, or as an ordering tiebreak. Id values are plain strings, not the schema's field types.
 
 ```ts
-import { documentId } from "firecast";
+import { documentId } from "kilncast";
 
 const some = await db
   .collection(posts)
@@ -312,15 +312,15 @@ It is the right tool for blind atomic writes. A transaction would cover these to
 
 ## What's guaranteed
 
-firecast types and coerces. It does not validate.
+kilncast types and coerces. It does not validate.
 
-Reads are coerced and typed. A read coerces stored Firestore values to neutral types (every `Timestamp` becomes a `Date`), then merges the document id in flat as `(T & { id }) | null`. firecast never runs your schema, so a document that has drifted from it still comes back, typed as valid. Validate on read yourself where that matters.
+Reads are coerced and typed. A read coerces stored Firestore values to neutral types (every `Timestamp` becomes a `Date`), then merges the document id in flat as `(T & { id }) | null`. kilncast never runs your schema, so a document that has drifted from it still comes back, typed as valid. Validate on read yourself where that matters.
 
 Writes are coerced. `set`, `add`, `update` and merge `set` coerce `Date` to `Timestamp` and translate sentinels, then write. The typed surface constrains every field at compile time, but nothing is checked at runtime.
 
 ### Sentinels
 
-firecast provides its own sentinels (`serverTimestamp`, `increment`, `arrayUnion`, `arrayRemove`, `deleteField`) because a neutral schema can't reference the admin or web `FieldValue` class. Each driver translates them to its own SDK at write time.
+kilncast provides its own sentinels (`serverTimestamp`, `increment`, `arrayUnion`, `arrayRemove`, `deleteField`) because a neutral schema can't reference the admin or web `FieldValue` class. Each driver translates them to its own SDK at write time.
 
 In `update` and merge `set`, each sentinel is constrained to the field types it fits. `increment` works only on a number field, `arrayUnion` / `arrayRemove` only on a matching array, `serverTimestamp` only on a `Date` or `Timestamp` field, and `deleteField` only on an optional field. A mismatch is a compile error.
 
@@ -354,7 +354,7 @@ Schemas speak `Date`. The boundary coerces between `Date` and `Timestamp` deeply
 If a field needs full nanosecond precision, keep it raw with the `raw` option (a list of dotted field paths). Those paths return the raw SDK value uncoerced on read, whatever the type, so your schema types them as the SDK type (`Timestamp` here) rather than a `Date`. The same option keeps any other field raw too, for example an SDK `Bytes` instead of a coerced `Uint8Array`.
 
 ```ts
-import { collection, isTimestampLike, type Timestamp } from "firecast";
+import { collection, isTimestampLike, type Timestamp } from "kilncast";
 import { z } from "zod";
 
 const events = collection(
@@ -373,7 +373,7 @@ const events = collection(
 Bytes are the binary analogue of timestamps. Schemas speak `Uint8Array`, the JS-native binary type, with no SDK import. The boundary coerces it to the SDK bytes type on write (the web `Bytes` class, an admin `Buffer`) and back to a plain `Uint8Array` on read, deeply, the same as `Date` and `Timestamp`. Lossless, so no precision caveat.
 
 ```ts
-import { collection } from "firecast";
+import { collection } from "kilncast";
 import { z } from "zod";
 
 const files = collection("files", z.object({ blob: z.custom<Uint8Array>() }));
@@ -386,10 +386,10 @@ file?.blob;
 
 ## Neutral value types
 
-A schema can name Firestore's other value types without importing either SDK. firecast ships structural `GeoPoint`, `DocumentReference` and `VectorValue` interfaces that mirror neutral `Timestamp`. They are types only: firecast does not coerce them. They round-trip uncoerced as the SDK class instance you read and write.
+A schema can name Firestore's other value types without importing either SDK. kilncast ships structural `GeoPoint`, `DocumentReference` and `VectorValue` interfaces that mirror neutral `Timestamp`. They are types only: kilncast does not coerce them. They round-trip uncoerced as the SDK class instance you read and write.
 
 ```ts
-import { collection, type GeoPoint } from "firecast";
+import { collection, type GeoPoint } from "kilncast";
 import { z } from "zod";
 
 const places = collection(
@@ -404,22 +404,22 @@ const places = collection(
 
 ## Schema drift
 
-firecast does not validate, so it does not catch drift. Stored data can diverge from the current schema: legacy docs, partial migrations, edits from other services or the console. A drifted document comes back coerced and typed as valid rather than throwing. Where that matters, run your schema on the result yourself, or drop to the SDK via `.ref`.
+kilncast does not validate, so it does not catch drift. Stored data can diverge from the current schema: legacy docs, partial migrations, edits from other services or the console. A drifted document comes back coerced and typed as valid rather than throwing. Where that matters, run your schema on the result yourself, or drop to the SDK via `.ref`.
 
 ## Escape hatch
 
-Every handle exposes a `.ref` with the converter attached, so raw Firestore calls that firecast doesn't wrap still run through it where the SDK invokes it. The converter coerces both directions: a read coerces stored values to neutral types and merges the id in, a write coerces `Date` to `Timestamp` and translates sentinels.
+Every handle exposes a `.ref` with the converter attached, so raw Firestore calls that kilncast doesn't wrap still run through it where the SDK invokes it. The converter coerces both directions: a read coerces stored values to neutral types and merges the id in, a write coerces `Date` to `Timestamp` and translates sentinels.
 
 `.ref` is typed `unknown` so the neutral core imports no SDK. Each entrypoint ships typed helpers, `docRef` / `collectionRef` / `queryRef`, that hand back the SDK ref typed to your schema, so you don't cast by hand.
 
 ```ts
-// or "firecast/web"
-import { docRef } from "firecast/admin";
+// or "kilncast/web"
+import { docRef } from "kilncast/admin";
 
 // DocumentReference<Doc<typeof posts.schema>>
 const ref = docRef(db.collection(posts).doc("hello-world"));
 
-// raw SDK call firecast does not wrap, data() is still coerced
+// raw SDK call kilncast does not wrap, data() is still coerced
 const unsub = ref.onSnapshot((snap) => {
   // post: Doc<typeof posts.schema> | undefined
   const post = snap.data();
@@ -433,5 +433,5 @@ If you need to drop fully to the raw SDK type yourself, `.ref` is still there to
 
 ## Errors
 
-- `FirecastError` is the base class for the few errors firecast raises itself (such as an unknown sentinel). firecast polices neither ids nor write/query shapes, so those surface as the SDK's own error.
+- `KilncastError` is the base class for the few errors kilncast raises itself (such as an unknown sentinel). kilncast polices neither ids nor write/query shapes, so those surface as the SDK's own error.
 - Firestore, network, and permission errors propagate untouched.

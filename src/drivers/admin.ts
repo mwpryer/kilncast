@@ -32,7 +32,7 @@ import type {
   Unsubscribe,
   WriteOptions,
 } from "@/core/driver";
-import { FirecastError } from "@/core/errors";
+import { KilncastError } from "@/core/errors";
 import {
   ArrayRemoveSentinel,
   ArrayUnionSentinel,
@@ -73,7 +73,7 @@ export class AdminDriver implements Driver {
     if (sentinel instanceof DeleteFieldSentinel) {
       return AdminFieldValue.delete();
     }
-    throw new FirecastError("Unknown sentinel");
+    throw new KilncastError("Unknown sentinel");
   }
 
   #values(values: readonly unknown[]): unknown[] {
