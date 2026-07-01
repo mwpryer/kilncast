@@ -29,7 +29,7 @@
   "scripts": {
     "build": "tsup",
     "typecheck": "tsc --noEmit",
-    "test": "bun test",
+    "test": "firebase emulators:exec --only firestore --project firecast 'bun test'",
     "lint": "oxlint",
     "lint:fix": "oxlint --fix",
     "fmt": "oxfmt",
@@ -43,9 +43,11 @@
     "@types/bun": "latest",
     "firebase": "^12.15.0",
     "firebase-admin": "^14.0.0",
+    "firebase-tools": "^15.16.0",
     "oxfmt": "^0.56.0",
     "oxlint": "^1.71.0",
-    "tsup": "^8.5.1"
+    "tsup": "^8.5.1",
+    "zod": "^4.4.3"
   },
   "peerDependencies": {
     "firebase": "^11.0.0 || ^12.0.0",

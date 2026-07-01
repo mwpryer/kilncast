@@ -1,0 +1,171 @@
+import { z } from "zod";
+
+import type { Database } from "@/core/database";
+import {
+  arrayUnion,
+  collection,
+  deleteField,
+  documentId,
+  increment,
+  serverTimestamp,
+} from "@/index";
+import type { Doc, DocumentReference, GeoPoint, VectorValue } from "@/index";
+import { places, sampleUser, users } from "./support";
+
+// Compile-time only, never executed, typecheck enforces every ts-expect-error
+
+// Drivers share one Database type, a single surface covers admin and web
+declare const db: Database;
+
+function queryTypes(): void {
+  const h = db.collection(users);
+  // Valid field paths, values, and operators type-check
+  void h.where("age", ">=", 18);
+  void h.where("age", "in", [20, 40]);
+  void h.where("tags", "array-contains", "tag1");
+  void h.where("profile.bio", "==", "hi");
+  void h.orderBy("createdAt", "desc");
+  void h.orderBy("age");
+  // @ts-expect-error unknown field is not a valid path
+  void h.where("nope", "==", 1);
+  // @ts-expect-error value type must match the field (age is a number)
+  void h.where("age", "==", "old");
+  // @ts-expect-error in takes an array of the field type
+  void h.where("age", "in", 30);
+  // @ts-expect-error array-contains element must match the array element type
+  void h.where("tags", "array-contains", 1);
+  // @ts-expect-error path stops at a primitive, cannot reach into it
+  void h.where("name.length", "==", 1);
+  // @ts-expect-error orderBy unknown field is not a valid path
+  void h.orderBy("nope");
+  // Document id queries are typed to id strings
+  void h.where(documentId(), "in", ["a", "b"]);
+  void h.where(documentId(), "==", "a");
+  void h.orderBy(documentId());
+  // @ts-expect-error document id value is a string, not a number
+  void h.where(documentId(), "==", 1);
+  // @ts-expect-error in takes an array of id strings
+  void h.where(documentId(), "in", "a");
+  // Aggregations are constrained to numeric field paths
+  void h.sum("age");
+  void h.average("age");
+  // @ts-expect-error sum requires a numeric field, not a string
+  void h.sum("name");
+  // @ts-expect-error average requires a numeric field, not a date
+  void h.average("createdAt");
+  // @ts-expect-error unknown field is not a valid path
+  void h.sum("nope");
+  // @ts-expect-error undefined is not a queryable value
+  void h.where("profile", "==", undefined);
+}
+
+function updateTypes(): void {
+  const u = db.collection(users);
+  // Sentinels are constrained to compatible fields
+  // @ts-expect-error increment is not valid on a string field
+  void u.update("john", { name: increment(1) });
+  // @ts-expect-error serverTimestamp is not valid on a number field
+  void u.update("john", { age: serverTimestamp() });
+  // @ts-expect-error arrayUnion element type must match (number vs string)
+  void u.update("john", { tags: arrayUnion(123) });
+  // @ts-expect-error deleteField is not valid on a required field
+  void u.update("john", { name: deleteField() });
+  void u.update("john", {
+    name: "John Doe",
+    age: increment(1),
+    tags: arrayUnion("tag2"),
+    createdAt: serverTimestamp(),
+  });
+  // Dotted-path update keys are typed
+  const p = db.collection(places);
+  void p.update("p1", { "address.city": "London" });
+  void p.update("p1", { "address.geo.lat": increment(1) });
+  void p.update("p1", { "stats.lastVisit": serverTimestamp() });
+  void p.update("p1", { "address.geo": { lat: 1, lng: 2 } });
+  void p.update("p1", { "address.note": deleteField() });
+  // A whole-map value carries nested sentinels, transforms reach inside maps
+  void p.update("p1", {
+    stats: { visits: increment(1), lastVisit: serverTimestamp() },
+  });
+  // @ts-expect-error unknown dotted path
+  void p.update("p1", { "address.country": "UK" });
+  // @ts-expect-error value type must match the path (lat is a number)
+  void p.update("p1", { "address.geo.lat": "no" });
+  // @ts-expect-error increment is not valid on a string path
+  void p.update("p1", { "address.city": increment(1) });
+  // @ts-expect-error path stops at a primitive, cannot reach into it
+  void p.update("p1", { "name.first": "X" });
+  // @ts-expect-error deleteField is not valid on a required path
+  void p.update("p1", { "address.city": deleteField() });
+}
+
+function writeTypes(): void {
+  const u = db.collection(users);
+  // A full set takes value sentinels constrained to each field, deleteField excluded
+  // @ts-expect-error increment is not valid on a string field
+  void u.set("john", { ...sampleUser(), name: increment(1) });
+  // @ts-expect-error serverTimestamp is not valid on a number field
+  void u.set("john", { ...sampleUser(), age: serverTimestamp() });
+  // @ts-expect-error deleteField cannot appear in a non-merge set
+  void u.set("john", { ...sampleUser(), name: deleteField() });
+  void u.set("john", { ...sampleUser(), createdAt: serverTimestamp() });
+  // Sentinels never reach inside arrays, Firestore rejects them there
+  const logs = collection(
+    "logs",
+    z.object({ entries: z.array(z.object({ at: z.date() })) }),
+  );
+  void db
+    .collection(logs)
+    // @ts-expect-error sentinels are not valid inside array elements
+    .set("l1", { entries: [{ at: serverTimestamp() }] });
+  // Dotted keys are field paths only in update, a merge set would name them literally
+  const p = db.collection(places);
+  // @ts-expect-error dotted keys are not part of the merge set surface
+  void p.set("p1", { "address.city": "London" }, { merge: true });
+  // A merge set whole-map value carries nested sentinels
+  void p.set(
+    "p1",
+    { stats: { visits: increment(1), lastVisit: serverTimestamp() } },
+    { merge: true },
+  );
+  // mergeFields names known field paths only
+  // @ts-expect-error nope is not a field path on this schema
+  void p.set("p1", { name: "x" }, { mergeFields: ["nope"] });
+  // Batch handles expose write but never read, and have no add
+  const b = db.batch().collection(users);
+  void b.set("a", sampleUser());
+  void b.update("a", { age: increment(1) });
+  void b.delete("a");
+  // @ts-expect-error batch handles cannot read
+  void b.get("a");
+  // @ts-expect-error batch has no add, nothing returns an id pre-commit
+  void b.add(sampleUser());
+  // @ts-expect-error id comes from the path, not a schema field
+  void collection("bad", z.object({ id: z.string() }));
+}
+
+function schemaTypes(): void {
+  // Neutral value types are named in a schema without importing an SDK
+  const assets = collection(
+    "assets",
+    z.object({
+      location: z.custom<GeoPoint>(),
+      owner: z.custom<DocumentReference>(),
+      embedding: z.custom<VectorValue>(),
+    }),
+  );
+  function readAsset(doc: Doc<typeof assets.schema>): void {
+    const lat: number = doc.location.latitude;
+    const id: string = doc.owner.id;
+    const vec: number[] = doc.embedding.toArray();
+    void lat;
+    void id;
+    void vec;
+  }
+  void readAsset;
+}
+
+void queryTypes;
+void updateTypes;
+void writeTypes;
+void schemaTypes;
