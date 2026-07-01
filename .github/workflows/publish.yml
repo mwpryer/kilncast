@@ -1,0 +1,35 @@
+name: Publish
+
+on:
+  workflow_dispatch:
+  push:
+    tags: ["v*"]
+
+permissions:
+  id-token: write
+  contents: write
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+          registry-url: "https://registry.npmjs.org"
+      # The test script runs against the Firestore emulator, which needs a JVM
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+      - run: bun install --frozen-lockfile
+      # Guard against tag drifting from package.json version
+      - run: test "$GITHUB_REF_NAME" = "v$(npm pkg get version | tr -d '\"')"
+      - run: bun run test
+      - run: bun run build
+      - run: npm publish
+      - run: gh release create "$GITHUB_REF_NAME" --generate-notes
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

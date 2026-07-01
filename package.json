@@ -34,7 +34,9 @@
     "lint:fix": "oxlint --fix",
     "fmt": "oxfmt",
     "fmt:check": "oxfmt --check",
-    "format": "bun run lint:fix && bun run fmt"
+    "format": "bun run lint:fix && bun run fmt",
+    "preversion": "bun run typecheck && bun run lint && bun run fmt:check && bun run test",
+    "postversion": "git push --follow-tags"
   },
   "dependencies": {
     "@standard-schema/spec": "^1.1.0"
