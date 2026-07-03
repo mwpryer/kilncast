@@ -23,7 +23,7 @@ jobs:
       - uses: actions/setup-java@v4
         with:
           distribution: temurin
-          java-version: "17"
+          java-version: "21"
       - run: bun install --frozen-lockfile
       # Guard against tag drifting from package.json version
       - run: test "$GITHUB_REF_NAME" = "v$(npm pkg get version | tr -d '\"')"
