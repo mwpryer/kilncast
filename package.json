@@ -9,7 +9,8 @@
     "url": "git+https://github.com/mwpryer/kilncast.git"
   },
   "files": [
-    "dist"
+    "dist",
+    "skills"
   ],
   "type": "module",
   "exports": {
