@@ -309,8 +309,12 @@ export class DocumentHandle<S extends StandardSchemaV1> {
   }
 
   onSnapshot(observer: DocSnapshotObserver<S>): Unsubscribe {
-    const next = typeof observer === "function" ? observer : observer.next;
-    const onError = typeof observer === "function" ? undefined : observer.error;
+    const next =
+      typeof observer === "function" ? observer : observer.next.bind(observer);
+    const onError =
+      typeof observer === "function"
+        ? undefined
+        : observer.error?.bind(observer);
     return this.#driver.onSnapshotDoc(docLocation(this.#segments), {
       next: (snapshot) => next(readSnapshot(this.#def, snapshot)),
       ...(onError && { error: onError }),

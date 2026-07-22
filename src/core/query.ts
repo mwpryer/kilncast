@@ -150,8 +150,12 @@ export class QueryBuilder<S extends StandardSchemaV1> {
   }
 
   onSnapshot(observer: QuerySnapshotObserver<S>): Unsubscribe {
-    const next = typeof observer === "function" ? observer : observer.next;
-    const onError = typeof observer === "function" ? undefined : observer.error;
+    const next =
+      typeof observer === "function" ? observer : observer.next.bind(observer);
+    const onError =
+      typeof observer === "function"
+        ? undefined
+        : observer.error?.bind(observer);
     return this.#ctx.driver.onSnapshotQuery(
       this.#ctx.source,
       this.#constraints,

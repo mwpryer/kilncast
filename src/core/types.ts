@@ -45,7 +45,7 @@ type NeutralValue =
 // Full-document write shape, Firestore bans sentinels inside arrays
 export type WithFieldValue<T> = T extends Primitive | NeutralValue
   ? T
-  : T extends Array<infer E>
+  : T extends ReadonlyArray<infer E>
     ? Array<E>
     : T extends object
       ? {
@@ -56,7 +56,7 @@ export type WithFieldValue<T> = T extends Primitive | NeutralValue
 // Sentinels valid on a field of type V so a wrong one is a compile error
 export type SentinelFor<V> =
   | (V extends number ? IncrementSentinel : never)
-  | (V extends Array<infer E>
+  | (V extends ReadonlyArray<infer E>
       ? ArrayUnionSentinel<E> | ArrayRemoveSentinel<E>
       : never)
   // serverTimestamp() writes a Timestamp, so allow on Date/Timestamp fields
