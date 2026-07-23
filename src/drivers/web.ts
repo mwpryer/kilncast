@@ -65,7 +65,7 @@ import type {
   Unsubscribe,
   WriteOptions,
 } from "@/core/driver";
-import { KilncastError } from "@/core/errors";
+import { FiresmithError } from "@/core/errors";
 import {
   ArrayRemoveSentinel,
   ArrayUnionSentinel,
@@ -108,7 +108,7 @@ export class WebDriver implements Driver {
     if (sentinel instanceof DeleteFieldSentinel) {
       return webDeleteField();
     }
-    throw new KilncastError("Unknown sentinel");
+    throw new FiresmithError("Unknown sentinel");
   }
 
   #values(values: readonly unknown[]): unknown[] {

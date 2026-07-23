@@ -39,14 +39,14 @@ async function clearProject(projectId: string): Promise<void> {
 }
 
 // Admin finds the emulator via FIRESTORE_EMULATOR_HOST, no query cache so a REST wipe is enough
-const adminApp = initAdminApp({ projectId: "kilncast-admin" }, "admin");
+const adminApp = initAdminApp({ projectId: "firesmith-admin" }, "admin");
 const adminFs = getAdminFirestore(adminApp);
 
 export const adminKit: DriverKit = {
   name: "admin",
   db: createAdminDatabase(adminFs),
   rawGet: async (path) => (await adminFs.doc(path).get()).data(),
-  clear: () => clearProject("kilncast-admin"),
+  clear: () => clearProject("firesmith-admin"),
   timestamp: (seconds, nanoseconds) => new AdminTimestamp(seconds, nanoseconds),
   isSdkTimestamp: (value) => value instanceof AdminTimestamp,
   geoPoint: (latitude, longitude) => new AdminGeoPoint(latitude, longitude),
@@ -57,7 +57,7 @@ export const adminKit: DriverKit = {
 
 // Web SDK caches a listener's first delivery, so rebuild the client each clear() for a cold cache
 let webSeq = 0;
-let webApp = initWebApp({ projectId: "kilncast-web" }, "web-0");
+let webApp = initWebApp({ projectId: "firesmith-web" }, "web-0");
 // Long polling is the reliable off-browser transport
 let webFs = initializeFirestore(webApp, { experimentalForceLongPolling: true });
 connectFirestoreEmulator(webFs, HOST_NAME!, Number(HOST_PORT));
@@ -67,7 +67,7 @@ async function rebuildWeb(): Promise<void> {
   await terminate(webFs).catch(() => {});
   await deleteApp(webApp).catch(() => {});
   webSeq += 1;
-  webApp = initWebApp({ projectId: "kilncast-web" }, `web-${webSeq}`);
+  webApp = initWebApp({ projectId: "firesmith-web" }, `web-${webSeq}`);
   webFs = initializeFirestore(webApp, { experimentalForceLongPolling: true });
   connectFirestoreEmulator(webFs, HOST_NAME!, Number(HOST_PORT));
   webDb = createWebDatabase(webFs);
@@ -80,7 +80,7 @@ export const webKit: DriverKit = {
   },
   rawGet: async (path) => (await webGetDoc(webDoc(webFs, path))).data(),
   clear: async () => {
-    await clearProject("kilncast-web");
+    await clearProject("firesmith-web");
     await rebuildWeb();
   },
   timestamp: (seconds, nanoseconds) => new WebTimestamp(seconds, nanoseconds),

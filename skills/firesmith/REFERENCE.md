@@ -1,9 +1,9 @@
-# kilncast reference
+# firesmith reference
 
-Full usage reference for the `kilncast` surface. All snippets assume a `db` from `createDatabase` and defs like:
+Full usage reference for the `firesmith` surface. All snippets assume a `db` from `createDatabase` and defs like:
 
 ```ts
-import { collection } from "kilncast";
+import { collection } from "firesmith";
 import { z } from "zod";
 
 const posts = collection(
@@ -64,7 +64,7 @@ Every write also exists on a document handle: `db.collection(posts).doc("hello")
 
 ## Sentinels
 
-Import from `kilncast`, never an SDK `FieldValue`. Each is constrained at compile time to the field types it fits:
+Import from `firesmith`, never an SDK `FieldValue`. Each is constrained at compile time to the field types it fits:
 
 | Sentinel            | Valid on                          |
 | ------------------- | --------------------------------- |
@@ -74,7 +74,7 @@ Import from `kilncast`, never an SDK `FieldValue`. Each is constrained at compil
 | `arrayRemove(...v)` | matching array fields             |
 | `deleteField()`     | optional fields only, update only |
 
-`set` / `add` accept sentinels per field but not `deleteField` (a full write cannot delete a field). Firestore rejects a sentinel inside an array; `kilncast` forwards that as the SDK's own error.
+`set` / `add` accept sentinels per field but not `deleteField` (a full write cannot delete a field). Firestore rejects a sentinel inside an array; `firesmith` forwards that as the SDK's own error.
 
 ## Nested updates
 
@@ -122,7 +122,7 @@ Chained `where` is AND-only; there is no `or()`. For a disjunction drop to the S
 The id is not a schema field; target it with `documentId()`:
 
 ```ts
-import { documentId } from "kilncast";
+import { documentId } from "firesmith";
 
 const some = await db
   .collection(posts)
@@ -217,7 +217,7 @@ await batch.commit();
 Schemas speak `Date`; the boundary coerces `Date` to `Timestamp` on write and back on read, deeply. `Date` is millisecond precision, so the round-trip truncates sub-millisecond precision. For full precision keep the field raw:
 
 ```ts
-import { collection, isTimestampLike, type Timestamp } from "kilncast";
+import { collection, isTimestampLike, type Timestamp } from "firesmith";
 
 const events = collection(
   "events",
@@ -240,10 +240,10 @@ await db.collection(files).set("f", { blob: new Uint8Array([1, 2, 3]) });
 
 ## Neutral value types
 
-`Timestamp`, `GeoPoint`, `DocumentReference`, `VectorValue` are structural interfaces exported from `kilncast`, so a schema names them without importing an SDK. Only timestamps and bytes are coerced; the rest round-trip as the SDK class instance.
+`Timestamp`, `GeoPoint`, `DocumentReference`, `VectorValue` are structural interfaces exported from `firesmith`, so a schema names them without importing an SDK. Only timestamps and bytes are coerced; the rest round-trip as the SDK class instance.
 
 ```ts
-import { type GeoPoint } from "kilncast";
+import { type GeoPoint } from "firesmith";
 const places = collection("places", z.object({ at: z.custom<GeoPoint>() }));
 ```
 
@@ -253,7 +253,7 @@ Every collection, document, and query handle exposes `.ref`, the raw SDK ref wit
 
 ```ts
 // or /web
-import { docRef, collectionRef, queryRef } from "kilncast/admin";
+import { docRef, collectionRef, queryRef } from "firesmith/admin";
 
 // DocumentReference<Doc<S>>
 const ref = docRef(db.collection(posts).doc("hello"));
@@ -267,13 +267,13 @@ Firestore runs no converter for `updateDoc` / `ref.update(...)`, so a raw update
 
 ## Errors
 
-`KilncastError` covers only `kilncast`'s own failures (e.g. an unknown sentinel). Firestore, network, and permission errors propagate untouched, and `kilncast` polices neither ids nor write/query shapes, so an invalid shape surfaces as the SDK's own error.
+`FiresmithError` covers only `firesmith`'s own failures (e.g. an unknown sentinel). Firestore, network, and permission errors propagate untouched, and `firesmith` polices neither ids nor write/query shapes, so an invalid shape surfaces as the SDK's own error.
 
 ## Gotchas
 
 - Never declare `id` in a schema; `collection()` rejects it at compile time.
 - No runtime validation, ever. Drifted documents come back typed as valid; validate on read yourself where it matters.
-- Schemas must describe a Firestore-storable object (no directly nested arrays); `kilncast` does not police this, the SDK errors at write time.
+- Schemas must describe a Firestore-storable object (no directly nested arrays); `firesmith` does not police this, the SDK errors at write time.
 - Transaction and batch writes take no `await`; a forgotten one still enqueues, deliberately.
 - `deleteField()` compiles only on optional fields and only in `update` (and merge `set` field values).
 - `average()` is `null` over an empty match; `sum()` is `0`.

@@ -21,7 +21,7 @@ export type {
   Timestamp,
   VectorValue,
 } from "@/core/firestore";
-export { KilncastError } from "@/core/errors";
+export { FiresmithError } from "@/core/errors";
 
 export { Batch, Database, Transaction } from "@/core/database";
 export type { TransactionOptions, Unsubscribe } from "@/core/driver";

@@ -8,13 +8,13 @@ import type { GeoPoint, Timestamp } from "@/index";
 export interface DriverKit {
   readonly name: string;
   readonly db: Database;
-  // Raw stored data read through the underlying SDK, bypassing kilncast coercion
+  // Raw stored data read through the underlying SDK, bypassing firesmith coercion
   rawGet(path: string): Promise<Record<string, unknown> | undefined>;
   // Wipe every document so each test starts from an empty database
   clear(): Promise<void>;
   // A genuine SDK Timestamp for this driver, the read path must hand it back untouched
   timestamp(seconds: number, nanoseconds: number): Timestamp;
-  // Whether a value is this driver's real SDK Timestamp class, not a kilncast copy
+  // Whether a value is this driver's real SDK Timestamp class, not a firesmith copy
   isSdkTimestamp(value: unknown): boolean;
   // A genuine SDK GeoPoint, an unrecognised class instance the boundary passes through untouched
   geoPoint(latitude: number, longitude: number): GeoPoint;
